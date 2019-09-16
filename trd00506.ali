@@ -1,0 +1,101 @@
+\*
+ * Algemeeen tooltje voor diverse uitzoek dingetjes
+ *\
+
+nolist
+#include "trd.h"
+#include "trdwin.h"
+
+#define RT_OPEN             NAD,ART,SLW
+#define PARAMETER_LIST      p1,p2,p3,p4,p5,p6,p7,p8,p9,p10
+list
+
+trd00506[FuncNr,ModNr,PARAMETER_LIST]
+    ldata[n70,n,7]
+    ldata[n71,n,7,1]
+    ldata[n72,n,7,2]
+    ldata[n73,n,7,3]
+    ldata[n74,n,7,4]
+
+    move[123,n70,n71,n72,n73,n74]
+
+    &$wd_log['n70=%a',n70]
+    &$wd_log['n71=%a',n71]
+    &$wd_log['n72=%a',n72]
+    &$wd_log['n73=%a',n73]
+    &$wd_log['n74=%a',n74]
+
+
+
+\
+
+    data[decim_countr(4),n,15]
+    tbinit[decim_countr]
+
+    record[RT_OPEN]
+    rtopen[RT_OPEN]
+    if[loaderr] abort;
+
+
+    initrec[nad]
+    dreadnl[nad,1]
+    chksub[nad]
+    switch[acp-fstat]
+        case[fs00]
+        case[fs23]  break
+        default
+            abort
+    cend
+\
+
+
+
+
+\
+    initrec[RT_OPEN]
+
+    initrec[ART]
+    loop
+        dreadg[ART]
+        chksub[ART]
+        switch[acp-fstat]
+            case[fs00]
+            case[fs23]
+                break
+            default
+                abort
+        cend
+
+        initrec[SLW]
+        move[ART-artid,SLW-artid]
+        dreade[SLW]
+        switch[acp-fstat]
+            case[fs00]
+                _do_log[ART-VrdDeci]
+            case[fs23]
+                break
+            default
+                abort
+        cend
+
+        \ \ drewrite[stv,,999] \ \
+    lend
+\
+
+    \rtclose[RT_OPEN]\
+prend
+
+
+\
+
+do_log[decimalen]
+    if[decimalen,lt,0,or,decimalen,gt,3] return;
+    ldata[idx,n,1]
+    move[decimalen,idx]
+    incr[idx]
+    if[decim_countr(idx),gt,100] return;
+
+    incr[decim_countr(idx)]
+    &$wd_log['artikel=%a, decimalen=%a',SLW-SleutelWoord, ART-VrdDeci]
+prend
+\
